@@ -16,8 +16,6 @@ A dependency-free Kimi plugin for working with self-hosted GitLab instances. It 
 
 Download the versioned plugin ZIP from [GitHub Releases](https://github.com/Euraika-Labs/gitlab-selfhosted/releases), or send the public repository URL to Kimi's Plugin Builder to import it. After import, open **GitLab Self-Hosted** on the **Personal** tab and click **＋** to install. No client restart is required.
 
-To propose the plugin for Kimi's official marketplace, the maintainer can open its personal-plugin details page, click **✉️**, select **Apply for official marketplace publication**, and submit contact details for Kimi's review team.
-
 ## Authentication and server selection
 
 The recommended connection uses the [GitLab CLI](https://gitlab.com/gitlab-org/cli) with its operating-system credential store. Install `glab`, then authenticate once for your server:
