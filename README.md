@@ -14,7 +14,9 @@ A dependency-free Kimi plugin for working with self-hosted GitLab instances. It 
 
 ## Installation
 
-Install **GitLab Self-Hosted** from the **Personal** tab on Kimi's Plugins page. No client restart is required.
+Download the versioned plugin ZIP from [GitHub Releases](https://github.com/Euraika-Labs/gitlab-selfhosted/releases), or send the public repository URL to Kimi's Plugin Builder to import it. After import, open **GitLab Self-Hosted** on the **Personal** tab and click **＋** to install. No client restart is required.
+
+To propose the plugin for Kimi's official marketplace, the maintainer can open its personal-plugin details page, click **✉️**, select **Apply for official marketplace publication**, and submit contact details for Kimi's review team.
 
 ## Configuration
 
@@ -54,6 +56,13 @@ The build validates the manifest and bundled skills, then creates a versioned pl
 - `tests/` — local mock-GitLab integration tests.
 - `.github/workflows/build.yml` — CI test and package build.
 
+## Community
+
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Contributing guide](CONTRIBUTING.md)
+- [Security policy](SECURITY.md)
+- [Changelog](CHANGELOG.md)
+
 ## License
 
-MIT
+[MIT](LICENSE)

@@ -1,0 +1,54 @@
+name: Bug report
+description: Report a reproducible problem with the plugin
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include GitLab tokens, private repository contents, customer data, or other secrets. Use the security policy for suspected vulnerabilities.
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Describe the actual behavior and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Provide minimal steps using non-sensitive mock data.
+      placeholder: |
+        1. Configure a non-production test instance.
+        2. Ask Kimi to perform a specific operation.
+        3. Observe the result.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Plugin version
+      description: For example, 0.1.0.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Kimi app version, operating system, and GitLab version if known.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant redacted output
+      description: Paste only minimal output with tokens, URLs containing credentials, and private data removed.
+      render: text
+  - type: checkboxes
+    id: redaction
+    attributes:
+      label: Safety check
+      options:
+        - label: I have removed secrets and private data from this report.
+          required: true
