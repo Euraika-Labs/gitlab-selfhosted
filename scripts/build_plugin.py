@@ -44,6 +44,8 @@ def package_files():
             if path.is_file() and "__pycache__" not in path.parts and path.suffix not in {".pyc", ".pyo"}:
                 yield path
     yield ROOT / "kimi.plugin.json"
+    if (ROOT / "icon.svg").is_file():
+        yield ROOT / "icon.svg"
 
 
 def build() -> None:

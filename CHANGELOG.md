@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2026-10-28
+
+### Added
+
+- Official GitLab logomark for the plugin details page and install package.
+- Cobertura coverage reporting through GitHub Code Quality.
+- Pull-request thresholds for code quality and coverage.
+
+### Changed
+
+- Clarified non-JSON GitLab error handling.
+- Updated GitHub Actions to Node.js 24 and Ubuntu 24.04.
+- Documented environment-based PAT and GitLab URL configuration.
+
 ## [0.1.0] - 2026-10-28
 
 ### Added
@@ -15,4 +29,5 @@ All notable changes to this project are documented here. The format follows [Kee
 - Mock-GitLab integration tests and reproducible ZIP packaging with SHA-256 checksums.
 - GitHub Actions test and build workflow.
 
+[0.1.1]: https://github.com/Euraika-Labs/gitlab-selfhosted/releases/tag/v0.1.1
 [0.1.0]: https://github.com/Euraika-Labs/gitlab-selfhosted/releases/tag/v0.1.0

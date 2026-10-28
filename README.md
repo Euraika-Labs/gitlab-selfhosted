@@ -29,6 +29,8 @@ To propose the plugin for Kimi's official marketplace, the maintainer can open i
 
 Keep tokens in the environment. Never place them in command arguments, URLs, source files, logs, or chat messages.
 
+**The plugin details page does not currently provide PAT or server-URL input fields.** Set `GITLAB_TOKEN` and, when needed, `GITLAB_URL` in Kimi Work's process environment. The client reads the token from `GITLAB_TOKEN` and sends it to the configured GitLab API in the `PRIVATE-TOKEN` header.
+
 After installation and configuration, ask Kimi naturally, for example:
 
 - “List my accessible GitLab projects.”
