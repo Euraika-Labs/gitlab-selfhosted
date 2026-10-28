@@ -1,7 +1,7 @@
 {
   "$schema": "https://catalog.msh.team/misc/kimi.plugin.schema.json",
   "name": "gitlab-selfhosted",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Work with repositories, issues, merge requests, and pipelines on a configurable self-hosted GitLab instance, preset to https://git.euraika.net.",
   "keywords": [
     "gitlab",

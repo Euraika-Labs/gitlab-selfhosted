@@ -13,12 +13,15 @@ Do not include GitLab tokens, cookies, private repository contents, customer dat
 
 ## Development setup
 
-Python 3.9 or later is sufficient. There are no third-party runtime or test dependencies.
+Python 3.9 or later is required. The runtime has no Python package dependencies; `glab` is the recommended optional authentication backend. Tests and coverage use the pinned development dependency.
 
 ```bash
 git clone https://github.com/Euraika-Labs/gitlab-selfhosted.git
 cd gitlab-selfhosted
-python3 -m unittest discover -s tests -v
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements-dev.txt
+.venv/bin/python -m coverage run --source=skills -m unittest discover -s tests -v
+.venv/bin/python -m coverage xml -o coverage.xml
 python3 scripts/build_plugin.py
 ```
 
@@ -38,7 +41,7 @@ The build creates a versioned ZIP and checksum under `dist/`. Do not commit gene
 
 - Read operations must not change GitLab state.
 - Creating issues or merge requests and retrying or canceling pipelines must remain behind explicit user confirmation and the `--confirm` safeguard.
-- Tokens may only be read from `GITLAB_TOKEN`; never accept them in URLs, command arguments, source files, or logs.
+- Prefer authentication through `glab` and its operating-system credential store. Direct fallback tokens may only be read from `GITLAB_TOKEN`; never accept them in URLs, command arguments, source files, or logs.
 - Do not weaken URL validation, TLS verification, output redaction, or error handling without a documented security reason.
 - New API operations should return compact JSON and avoid unnecessary data collection.
 
