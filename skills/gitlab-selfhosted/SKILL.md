@@ -5,16 +5,19 @@ description: Use when the user asks about a self-hosted GitLab instance, especia
 
 # GitLab Self-Hosted
 
-Use the bundled dependency-free Python client to work with GitLab API v4. The default instance is `https://git.euraika.net`.
+Use the bundled Python client to work with GitLab API v4. The default instance is `https://git.euraika.net`. Prefer an authenticated `glab` CLI and its operating-system credential store; direct API access remains available as a fallback.
 
-## Configuration
+## Configuration and authentication
 
-- `GITLAB_URL`: optional base URL override. It defaults to `https://git.euraika.net`; the CLI also accepts `--url`.
-- `GITLAB_TOKEN`: personal, project, or group access token. Keep it in the environment; never put it in command arguments, URLs, files, logs, or responses. Read-only work normally needs `read_api`; confirmed writes need `api`.
-- `GITLAB_CA_BUNDLE`: optional path to a PEM CA bundle for a private certificate authority.
+- Default mode is `auto`: use `glab` when installed and authenticated for the selected hostname, otherwise use direct API access.
+- Recommended setup: the user installs `glab` and runs `glab auth login --hostname <host>` once. No `GITLAB_TOKEN` is needed in this mode.
+- `GITLAB_URL`: optional base URL override used by either backend. It defaults to `https://git.euraika.net`; the CLI also accepts `--url`.
+- `GITLAB_TOKEN`: fallback-only personal, project, or group access token. Keep it in the environment; never put it in command arguments, URLs, files, logs, or responses. Read-only work normally needs `read_api`; confirmed writes need `api`.
+- `GITLAB_BACKEND`: optional `auto`, `glab`, or `urllib`; the CLI also accepts `--backend`.
+- `GITLAB_CA_BUNDLE`: optional path to a PEM CA bundle for direct API access. Setting it makes `auto` prefer direct access.
 - `GITLAB_TIMEOUT`: optional request timeout in seconds; defaults to `20`.
 
-If authentication fails, ask the user to configure `GITLAB_TOKEN`. Do not request that they paste the token into chat. To verify configuration without exposing the token, run `config`; use `whoami` to verify authentication.
+Run `config` to inspect the selected backend without exposing credentials, and `whoami` to verify authentication. If glab authentication is required, tell the user the exact `glab auth login --hostname <host>` command. For fallback authentication, ask the user to configure `GITLAB_TOKEN`; never request that they paste a token into chat.
 
 ## Running the client
 

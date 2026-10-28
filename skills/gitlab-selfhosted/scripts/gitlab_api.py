@@ -7,7 +7,9 @@ import argparse
 import base64
 import json
 import os
+import shutil
 import ssl
+import subprocess
 import sys
 import urllib.error
 import urllib.parse
@@ -118,17 +120,53 @@ def project_ref(project: str | int) -> str:
 
 
 class GitLabClient:
-    def __init__(self, base_url: str, token: str | None, timeout: float = 20.0, ca_bundle: str | None = None):
+    def __init__(
+        self,
+        base_url: str,
+        token: str | None,
+        timeout: float = 20.0,
+        ca_bundle: str | None = None,
+        backend: str = "auto",
+    ):
         base_url = base_url.strip().rstrip("/")
         parsed = urllib.parse.urlparse(base_url)
         if parsed.scheme not in {"http", "https"} or not parsed.netloc:
             raise GitLabError("GitLab URL must be an absolute http:// or https:// URL.")
         if parsed.username or parsed.password:
-            raise GitLabError("Do not put credentials in the GitLab URL; use GITLAB_TOKEN instead.")
+            raise GitLabError("Do not put credentials in the GitLab URL; use GITLAB_TOKEN or glab auth login instead.")
         self.base_url = base_url
+        self.hostname = parsed.netloc
         self.token = token
         self.timeout = timeout
         self.ssl_context = ssl.create_default_context(cafile=ca_bundle) if ca_bundle else None
+        self.glab_path = shutil.which("glab")
+        self.backend = self._select_backend(backend, bool(ca_bundle))
+
+    def _glab_authenticated(self) -> bool:
+        try:
+            result = subprocess.run(
+                [self.glab_path, "auth", "status", "--hostname", self.hostname],
+                text=True,
+                capture_output=True,
+                timeout=min(self.timeout, 10),
+                check=False,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            return False
+        return result.returncode == 0
+
+    def _select_backend(self, requested: str, custom_ca: bool) -> str:
+        if requested == "urllib" or (requested == "auto" and custom_ca):
+            return "urllib"
+        if not self.glab_path:
+            if requested == "glab":
+                raise GitLabError("The glab CLI is required for the glab backend but was not found on PATH.")
+            return "urllib"
+        if self._glab_authenticated():
+            return "glab"
+        if requested == "glab":
+            raise GitLabError(f"glab is not authenticated for {self.hostname}. Run: glab auth login --hostname {self.hostname}")
+        return "urllib"
 
     def request(
         self,
@@ -141,8 +179,43 @@ class GitLabClient:
         if params:
             clean_params = {key: value for key, value in params.items() if value is not None}
             query = "?" + urllib.parse.urlencode(clean_params, doseq=True)
+        if self.backend == "glab":
+            return self._glab_request(method, path, query, payload)
+        return self._urllib_request(method, path, query, payload)
+
+    def _glab_request(self, method: str, path: str, query: str, payload: dict[str, Any] | None) -> Any:
+        endpoint = f"{path.lstrip('/')}{query}"
+        command = [self.glab_path, "api", "--hostname", self.hostname, "--method", method, endpoint]
+        input_text = None
+        if payload is not None:
+            command.extend(("--input", "-"))
+            input_text = json.dumps(payload)
+        try:
+            result = subprocess.run(
+                command,
+                input=input_text,
+                text=True,
+                capture_output=True,
+                timeout=self.timeout,
+                check=False,
+            )
+        except subprocess.TimeoutExpired:
+            raise GitLabError(f"glab API request timed out after {self.timeout:g} seconds.") from None
+        except OSError as error:
+            raise GitLabError(f"Could not execute glab: {error}") from None
+        if result.returncode != 0:
+            detail = result.stderr.strip() or result.stdout.strip() or "unknown glab error"
+            raise GitLabError(f"glab API request failed: {truncate(detail, 2_000)}")
+        if not result.stdout.strip():
+            return None
+        try:
+            return json.loads(result.stdout)
+        except json.JSONDecodeError:
+            raise GitLabError("glab returned a response that was not valid JSON.") from None
+
+    def _urllib_request(self, method: str, path: str, query: str, payload: dict[str, Any] | None) -> Any:
         url = f"{self.base_url}/api/v4/{path.lstrip('/')}{query}"
-        headers = {"Accept": "application/json", "User-Agent": "kimi-gitlab-selfhosted/0.1"}
+        headers = {"Accept": "application/json", "User-Agent": "kimi-gitlab-selfhosted/0.2"}
         if self.token:
             headers["PRIVATE-TOKEN"] = self.token
         data = None
@@ -192,6 +265,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--url", default=os.environ.get("GITLAB_URL", DEFAULT_GITLAB_URL), help="GitLab base URL; defaults to GITLAB_URL or https://git.euraika.net")
     parser.add_argument("--timeout", type=float, default=float(os.environ.get("GITLAB_TIMEOUT", "20")), help="Request timeout in seconds")
     parser.add_argument("--ca-bundle", default=os.environ.get("GITLAB_CA_BUNDLE"), help="Optional custom CA certificate bundle; defaults to GITLAB_CA_BUNDLE")
+    parser.add_argument("--backend", choices=("auto", "glab", "urllib"), default=os.environ.get("GITLAB_BACKEND", "auto"), help="Connection backend: authenticated glab first, then direct API access (default: auto)")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     subparsers.add_parser("config", help="Show non-secret connection configuration")
@@ -293,7 +367,10 @@ def execute(args: argparse.Namespace, client: GitLabClient) -> Any:
         return {
             "gitlab_url": client.base_url,
             "api_base": f"{client.base_url}/api/v4",
-            "token_configured": bool(client.token),
+            "backend": client.backend,
+            "glab_available": bool(client.glab_path),
+            "authentication": "glab" if client.backend == "glab" else ("environment" if client.token else "none"),
+            "token_configured": client.backend == "glab" or bool(client.token),
             "custom_ca_bundle": bool(args.ca_bundle),
         }
     if command == "whoami":
@@ -365,7 +442,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.timeout <= 0:
         parser.error("--timeout must be greater than zero")
     try:
-        client = GitLabClient(args.url, os.environ.get("GITLAB_TOKEN"), args.timeout, args.ca_bundle)
+        client = GitLabClient(args.url, os.environ.get("GITLAB_TOKEN"), args.timeout, args.ca_bundle, args.backend)
         result = execute(args, client)
     except GitLabError as error:
         print(json.dumps({"error": str(error)}, ensure_ascii=False), file=sys.stderr)

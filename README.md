@@ -18,18 +18,33 @@ Download the versioned plugin ZIP from [GitHub Releases](https://github.com/Eura
 
 To propose the plugin for Kimi's official marketplace, the maintainer can open its personal-plugin details page, click **✉️**, select **Apply for official marketplace publication**, and submit contact details for Kimi's review team.
 
-## Configuration
+## Authentication and server selection
+
+The recommended connection uses the [GitLab CLI](https://gitlab.com/gitlab-org/cli) with its operating-system credential store. Install `glab`, then authenticate once for your server:
+
+```bash
+glab auth login --hostname git.euraika.net
+glab auth status --hostname git.euraika.net
+```
+
+The login flow asks for your GitLab URL and PAT as appropriate. Use `read_api` for read-only work or `api` for confirmed writes. No `GITLAB_TOKEN` environment variable is needed when `glab` is authenticated.
+
+The client defaults to `https://git.euraika.net` and uses this order:
+
+1. **`glab` backend:** used when `glab` is installed and authenticated for the selected hostname.
+2. **Direct API fallback:** used when `glab` is unavailable or not authenticated. Configure `GITLAB_TOKEN` in Kimi Work's process environment.
 
 | Variable | Required | Description |
 | --- | --- | --- |
-| `GITLAB_URL` | No | GitLab base URL. Defaults to `https://git.euraika.net`. |
-| `GITLAB_TOKEN` | For private data | GitLab personal, project, or group access token. Use `read_api` for read-only access or `api` for confirmed writes. |
-| `GITLAB_CA_BUNDLE` | No | Path to a PEM CA bundle for a private certificate authority. |
+| `GITLAB_URL` | No | Selects the GitLab base URL for either backend. Defaults to `https://git.euraika.net`. |
+| `GITLAB_TOKEN` | Fallback only | GitLab personal, project, or group access token for direct API access. |
+| `GITLAB_BACKEND` | No | `auto` (default), `glab`, or `urllib` (direct API). |
+| `GITLAB_CA_BUNDLE` | No | PEM CA bundle for direct API access. Setting this makes `auto` prefer the direct backend. |
 | `GITLAB_TIMEOUT` | No | Request timeout in seconds. Defaults to `20`. |
 
-Keep tokens in the environment. Never place them in command arguments, URLs, source files, logs, or chat messages.
+Keep tokens in the environment or the `glab` credential store. Never place them in command arguments, URLs, source files, logs, or chat messages.
 
-**The plugin details page does not currently provide PAT or server-URL input fields.** Set `GITLAB_TOKEN` and, when needed, `GITLAB_URL` in Kimi Work's process environment. The client reads the token from `GITLAB_TOKEN` and sends it to the configured GitLab API in the `PRIVATE-TOKEN` header.
+**The plugin details page does not provide PAT or server-URL input fields.** Authentication is handled by `glab` or the process environment instead. The direct fallback sends `GITLAB_TOKEN` in GitLab's `PRIVATE-TOKEN` header.
 
 After installation and configuration, ask Kimi naturally, for example:
 
@@ -40,10 +55,13 @@ After installation and configuration, ask Kimi naturally, for example:
 
 ## Development
 
-Requires Python 3.9 or later; the client and tests use only the Python standard library.
+Python 3.9 or later is required. Runtime has no Python package dependencies; `glab` is optional but recommended. Tests and coverage use `requirements-dev.txt`.
 
 ```bash
-python3 -m unittest discover -s tests -v
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements-dev.txt
+.venv/bin/python -m coverage run --source=skills -m unittest discover -s tests -v
+.venv/bin/python -m coverage xml -o coverage.xml
 python3 scripts/build_plugin.py
 ```
 
