@@ -163,6 +163,7 @@ class GitLabClient:
                 parsed = json.loads(raw)
                 detail = parsed.get("message") or parsed.get("error") or raw
             except (json.JSONDecodeError, AttributeError):
+                # Preserve the raw response when it is not a GitLab JSON error object.
                 pass
             raise GitLabError(f"GitLab returned HTTP {error.code}: {truncate(str(detail), 2_000)}") from None
         except urllib.error.URLError as error:
