@@ -1,8 +1,8 @@
 {
   "$schema": "https://catalog.msh.team/misc/kimi.plugin.schema.json",
   "name": "gitlab-selfhosted",
-  "version": "0.2.0",
-  "description": "Work with repositories, issues, merge requests, and pipelines on a configurable self-hosted GitLab instance, preset to https://git.euraika.net.",
+  "version": "0.3.0",
+  "description": "Work with repositories, issues, merge requests, and pipelines on your configurable self-hosted GitLab instance.",
   "keywords": [
     "gitlab",
     "self-hosted",
@@ -19,7 +19,7 @@
   "interface": {
     "displayName": "GitLab Self-Hosted",
     "shortDescription": "Use GitLab Self-Hosted in Kimi",
-    "longDescription": "Work with repositories, issues, merge requests, and pipelines on a configurable self-hosted GitLab instance, preset to https://git.euraika.net.",
+    "longDescription": "Work with repositories, issues, merge requests, and pipelines on your configurable self-hosted GitLab instance.",
     "developerName": "Euraika Labs",
     "websiteURL": "https://github.com/Euraika-Labs/gitlab-selfhosted",
     "iconUrl": "https://about.gitlab.com/images/press/gitlab-logo-100-rgb.svg",
