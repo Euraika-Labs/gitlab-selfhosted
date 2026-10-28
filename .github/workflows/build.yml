@@ -1,0 +1,38 @@
+name: Test and build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run integration tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Build plugin package
+        run: python scripts/build_plugin.py
+
+      - name: Upload plugin package
+        uses: actions/upload-artifact@v4
+        with:
+          name: gitlab-selfhosted-plugin
+          path: |
+            dist/*.zip
+            dist/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 14

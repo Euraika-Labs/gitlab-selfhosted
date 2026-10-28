@@ -1,0 +1,17 @@
+{
+  "displayName": "GitLab 自托管",
+  "shortDescription": "在 Kimi 中使用自托管 GitLab",
+  "longDescription": "在可配置的自托管 GitLab 实例上处理仓库、议题、合并请求和流水线，默认实例为 https://git.euraika.net。",
+  "developerName": "本地开发者",
+  "tryPrompts": [
+    "列出我可以访问的 GitLab 项目",
+    "显示 my-project 中未关闭的合并请求",
+    "列出 main 分支最近的流水线"
+  ],
+  "skillOverrides": {
+    "gitlab-selfhosted": {
+      "displayName": "GitLab 自托管",
+      "description": "在 Kimi 中使用自托管 GitLab"
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "$schema": "https://catalog.msh.team/misc/kimi.plugin.schema.json",
+  "name": "gitlab-selfhosted",
+  "version": "0.1.0",
+  "description": "Work with repositories, issues, merge requests, and pipelines on a configurable self-hosted GitLab instance, preset to https://git.euraika.net.",
+  "keywords": [
+    "gitlab",
+    "self-hosted",
+    "git",
+    "repositories",
+    "issues",
+    "merge requests",
+    "pipelines",
+    "ci cd"
+  ],
+  "author": "Local developer",
+  "license": "MIT",
+  "skillInstructions": "",
+  "interface": {
+    "displayName": "GitLab Self-Hosted",
+    "shortDescription": "Use GitLab Self-Hosted in Kimi",
+    "longDescription": "Work with repositories, issues, merge requests, and pipelines on a configurable self-hosted GitLab instance, preset to https://git.euraika.net.",
+    "developerName": "Local developer",
+    "websiteURL": "",
+    "iconUrl": "",
+    "category": "DEVELOPER_TOOLS",
+    "defaultLocale": "en-US",
+    "locales": "./locales/",
+    "tryPrompts": [
+      "List my accessible GitLab projects",
+      "Show open merge requests for my-project",
+      "List the latest pipelines on the main branch"
+    ],
+    "skillOverrides": {
+      "gitlab-selfhosted": {
+        "displayName": "GitLab Self-Hosted",
+        "description": "Use GitLab Self-Hosted in Kimi"
+      }
+    }
+  },
+  "skills": "./skills/"
+}
