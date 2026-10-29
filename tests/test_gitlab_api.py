@@ -187,10 +187,10 @@ class GitLabCliTests(unittest.TestCase):
         self.assertIn("absolute", json.loads(result.stderr)["error"])
         self.assertNotIn("Traceback", result.stderr)
 
-    def test_default_url_is_euraika(self):
+    def test_url_is_not_hardcoded(self):
         parser = gitlab_api.build_parser()
         args = parser.parse_args(["config"])
-        self.assertEqual(args.url, "https://git.euraika.net")
+        self.assertIsNone(args.url)
 
 
 if __name__ == "__main__":

@@ -7,6 +7,7 @@ import argparse
 import base64
 import json
 import os
+import re
 import shutil
 import ssl
 import subprocess
@@ -16,7 +17,6 @@ import urllib.parse
 import urllib.request
 from typing import Any
 
-DEFAULT_GITLAB_URL = "https://git.euraika.net"
 MAX_BODY_CHARS = 12_000
 
 
@@ -122,12 +122,15 @@ def project_ref(project: str | int) -> str:
 class GitLabClient:
     def __init__(
         self,
-        base_url: str,
+        base_url: str | None,
         token: str | None,
         timeout: float = 20.0,
         ca_bundle: str | None = None,
         backend: str = "auto",
     ):
+        self.glab_path = shutil.which("glab")
+        if not base_url:
+            base_url = self._discover_glab_url(backend)
         base_url = base_url.strip().rstrip("/")
         parsed = urllib.parse.urlparse(base_url)
         if parsed.scheme not in {"http", "https"} or not parsed.netloc:
@@ -139,8 +142,29 @@ class GitLabClient:
         self.token = token
         self.timeout = timeout
         self.ssl_context = ssl.create_default_context(cafile=ca_bundle) if ca_bundle else None
-        self.glab_path = shutil.which("glab")
         self.backend = self._select_backend(backend, bool(ca_bundle))
+
+    def _discover_glab_url(self, backend: str) -> str:
+        if backend == "urllib":
+            raise GitLabError("Set GITLAB_URL or pass --url when using the direct API backend.")
+        if not self.glab_path:
+            raise GitLabError("Set GITLAB_URL or install glab and run glab auth login --hostname <host>.")
+        try:
+            result = subprocess.run(
+                [self.glab_path, "auth", "status"],
+                text=True,
+                capture_output=True,
+                timeout=10,
+                check=False,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            raise GitLabError("Could not determine an authenticated GitLab host. Set GITLAB_URL explicitly.") from None
+        hosts = list(dict.fromkeys(re.findall(r"Logged in to\s+([A-Za-z0-9._:-]+)\s+as\s+", result.stdout + result.stderr)))
+        if len(hosts) == 1:
+            return f"https://{hosts[0]}"
+        if len(hosts) > 1:
+            raise GitLabError("Multiple authenticated GitLab hosts found. Set GITLAB_URL to select one explicitly.")
+        raise GitLabError("No authenticated GitLab host found. Set GITLAB_URL or run glab auth login --hostname <host>.")
 
     def _glab_authenticated(self) -> bool:
         try:
@@ -262,7 +286,7 @@ def require_confirmation(args: argparse.Namespace) -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--url", default=os.environ.get("GITLAB_URL", DEFAULT_GITLAB_URL), help="GitLab base URL; defaults to GITLAB_URL or https://git.euraika.net")
+    parser.add_argument("--url", default=os.environ.get("GITLAB_URL"), help="GitLab base URL; defaults to GITLAB_URL or the single authenticated glab host")
     parser.add_argument("--timeout", type=float, default=float(os.environ.get("GITLAB_TIMEOUT", "20")), help="Request timeout in seconds")
     parser.add_argument("--ca-bundle", default=os.environ.get("GITLAB_CA_BUNDLE"), help="Optional custom CA certificate bundle; defaults to GITLAB_CA_BUNDLE")
     parser.add_argument("--backend", choices=("auto", "glab", "urllib"), default=os.environ.get("GITLAB_BACKEND", "auto"), help="Connection backend: authenticated glab first, then direct API access (default: auto)")

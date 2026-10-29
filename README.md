@@ -1,6 +1,6 @@
 # GitLab Self-Hosted for Kimi
 
-A dependency-free Kimi plugin for working with self-hosted GitLab instances. It defaults to `https://git.euraika.net` and supports repositories, issues, merge requests, pipelines, and pipeline jobs through GitLab API v4.
+A dependency-free Kimi plugin for working with self-hosted GitLab instances. It supports repositories, issues, merge requests, pipelines, and pipeline jobs through GitLab API v4.
 
 ## Features
 
@@ -16,27 +16,25 @@ A dependency-free Kimi plugin for working with self-hosted GitLab instances. It 
 
 Download the versioned plugin ZIP from [GitHub Releases](https://github.com/Euraika-Labs/gitlab-selfhosted/releases), or send the public repository URL to Kimi's Plugin Builder to import it. After import, open **GitLab Self-Hosted** on the **Personal** tab and click **＋** to install. No client restart is required.
 
-To propose the plugin for Kimi's official marketplace, the maintainer can open its personal-plugin details page, click **✉️**, select **Apply for official marketplace publication**, and submit contact details for Kimi's review team.
-
 ## Authentication and server selection
 
-The recommended connection uses the [GitLab CLI](https://gitlab.com/gitlab-org/cli) with its operating-system credential store. Install `glab`, then authenticate once for your server:
+The recommended connection uses the [GitLab CLI](https://gitlab.com/gitlab-org/cli) with its operating-system credential store. Install `glab`, then authenticate once for your server. Replace `gitlab.example.com` with your own GitLab hostname:
 
 ```bash
-glab auth login --hostname git.euraika.net
-glab auth status --hostname git.euraika.net
+glab auth login --hostname gitlab.example.com
+glab auth status --hostname gitlab.example.com
 ```
 
 The login flow asks for your GitLab URL and PAT as appropriate. Use `read_api` for read-only work or `api` for confirmed writes. No `GITLAB_TOKEN` environment variable is needed when `glab` is authenticated.
 
-The client defaults to `https://git.euraika.net` and uses this order:
+The client selects the connection backend in this order:
 
 1. **`glab` backend:** used when `glab` is installed and authenticated for the selected hostname.
 2. **Direct API fallback:** used when `glab` is unavailable or not authenticated. Configure `GITLAB_TOKEN` in Kimi Work's process environment.
 
 | Variable | Required | Description |
 | --- | --- | --- |
-| `GITLAB_URL` | No | Selects the GitLab base URL for either backend. Defaults to `https://git.euraika.net`. |
+| `GITLAB_URL` | No | Selects the GitLab base URL for either backend. |
 | `GITLAB_TOKEN` | Fallback only | GitLab personal, project, or group access token for direct API access. |
 | `GITLAB_BACKEND` | No | `auto` (default), `glab`, or `urllib` (direct API). |
 | `GITLAB_CA_BUNDLE` | No | PEM CA bundle for direct API access. Setting this makes `auto` prefer the direct backend. |

@@ -39,6 +39,8 @@ entry = {{"args": sys.argv[1:], "stdin": sys.stdin.read() if "--input" in sys.ar
 with open(os.environ["MOCK_GLAB_LOG"], "a", encoding="utf-8") as log:
     log.write(json.dumps(entry) + "\\n")
 if sys.argv[1:3] == ["auth", "status"]:
+    if "--hostname" not in sys.argv:
+        print(os.environ.get("MOCK_GLAB_HOSTS", "✓ Logged in to git.example.test as bert"))
     raise SystemExit(int(os.environ.get("MOCK_GLAB_AUTH", "0")))
 if sys.argv[1] != "api":
     raise SystemExit(2)
@@ -63,9 +65,13 @@ else:
     def api_calls(self):
         return [call for call in self.calls() if call["args"] and call["args"][0] == "api"]
 
-    def run_cli(self, *args, backend="glab"):
+    def run_cli(self, *args, backend="glab", with_url=True):
+        command = [sys.executable, str(SCRIPT)]
+        if with_url:
+            command.extend(("--url", "https://git.example.test"))
+        command.extend(("--backend", backend, *args))
         return subprocess.run(
-            [sys.executable, str(SCRIPT), "--url", "https://git.example.test", "--backend", backend, *args],
+            command,
             text=True,
             capture_output=True,
             env=self.env,
@@ -134,6 +140,25 @@ else:
         error = json.loads(result.stderr)
         self.assertIn("glab API request failed", error["error"])
         self.assertNotIn("Traceback", result.stderr)
+
+    def test_single_authenticated_host_is_discovered(self):
+        result = self.run_cli("config", backend="auto", with_url=False)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        config = json.loads(result.stdout)
+        self.assertEqual(config["gitlab_url"], "https://git.example.test")
+        self.assertEqual(config["backend"], "glab")
+
+    def test_multiple_hosts_require_explicit_url(self):
+        self.env["MOCK_GLAB_HOSTS"] = "✓ Logged in to git.example.test as bert\n✓ Logged in to gitlab.com as bert"
+        result = self.run_cli("config", backend="auto", with_url=False)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("Multiple authenticated GitLab hosts", result.stderr)
+        self.assertIn("GITLAB_URL", result.stderr)
+
+    def test_direct_backend_requires_url(self):
+        result = self.run_cli("config", backend="urllib", with_url=False)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("Set GITLAB_URL", result.stderr)
 
 
 if __name__ == "__main__":

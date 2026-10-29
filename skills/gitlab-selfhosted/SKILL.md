@@ -1,17 +1,17 @@
 ---
 name: gitlab-selfhosted
-description: Use when the user asks about a self-hosted GitLab instance, especially git.euraika.net, including projects, repository files and branches, issues, merge requests, pipelines, or pipeline jobs. Supports a configurable GitLab URL and token-based API access.
+description: Use when the user asks about a self-hosted GitLab instance, including projects, repository files and branches, issues, merge requests, pipelines, or pipeline jobs. Supports configurable server URLs, glab authentication, and token-based API access.
 ---
 
 # GitLab Self-Hosted
 
-Use the bundled Python client to work with GitLab API v4. The default instance is `https://git.euraika.net`. Prefer an authenticated `glab` CLI and its operating-system credential store; direct API access remains available as a fallback.
+Use the bundled Python client to work with GitLab API v4. Prefer an authenticated `glab` CLI and its operating-system credential store; direct API access remains available as a fallback.
 
 ## Configuration and authentication
 
 - Default mode is `auto`: use `glab` when installed and authenticated for the selected hostname, otherwise use direct API access.
 - Recommended setup: the user installs `glab` and runs `glab auth login --hostname <host>` once. No `GITLAB_TOKEN` is needed in this mode.
-- `GITLAB_URL`: optional base URL override used by either backend. It defaults to `https://git.euraika.net`; the CLI also accepts `--url`.
+- `GITLAB_URL`: optional base URL override used by either backend. When omitted, the client discovers a single authenticated glab host; multiple or missing hosts require an explicit URL. The CLI also accepts `--url`.
 - `GITLAB_TOKEN`: fallback-only personal, project, or group access token. Keep it in the environment; never put it in command arguments, URLs, files, logs, or responses. Read-only work normally needs `read_api`; confirmed writes need `api`.
 - `GITLAB_BACKEND`: optional `auto`, `glab`, or `urllib`; the CLI also accepts `--backend`.
 - `GITLAB_CA_BUNDLE`: optional path to a PEM CA bundle for direct API access. Setting it makes `auto` prefer direct access.
